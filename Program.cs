@@ -17,50 +17,62 @@ var fileName = "picture";
 var urlList = imageDownloader.GetUrlListFromTxtFile("UrlList.txt");
 var taskList = new List<Task>();
 
-foreach(var url in urlList)
+Task task = new(() =>
 {
-    taskList.Add(imageDownloader.DownloadAsync(url, fileName));
-}
+    foreach (var url in urlList)
+    {
+        taskList.Add(imageDownloader.DownloadAsync(url, fileName));
+    }
+}, token);
 
-
-while (imageDownloader.UrlListIsOpen)
+try
 {
-    Console.WriteLine("\nPress \"A\" to exit or any other key to check the download status\n");
-    
-    var command = Console.ReadLine();
-    if (command == "A")
-    {
-        cts.Cancel();
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("\n Operation interrupted");
-        Console.WriteLine("\n ------ !Exit! ------");
-        Console.ResetColor();
-        break;
-    }
+    task.Start();
 
-    if (Task.WhenAll(taskList).IsCompleted)
+    while (imageDownloader.UrlListIsOpen)
     {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("All files downloaded!!!");
-        Console.ResetColor();
-    }
-    else
-    {
-        for (int i = 0; i < taskList.Count; i++)
+        Console.WriteLine("\nPress \"A\" to exit or any other key to check the download status\n");
+
+        var command = Console.ReadLine();
+        if (command == "A")
         {
-            Console.WriteLine(
-                $"File: {imageDownloader.DownloadList[i]}\t\t" +
-                $"Download is completed: {taskList[i].IsCompleted}\t\t" +
-                $"Task ID: {taskList[i].Id}");
+            cts.Cancel();  
+            token.ThrowIfCancellationRequested();
+        }        
+
+        if (Task.WhenAll(taskList).IsCompleted)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("All files downloaded!!!");
+            Console.ResetColor();
+        }
+        else
+        {
+            for (int i = 0; i < taskList.Count; i++)
+            {
+                Console.WriteLine(
+                    $"File: {imageDownloader.DownloadList[i]}\t\t" +
+                    $"Download is completed: {taskList[i].IsCompleted}\t\t" +
+                    $"Task ID: {taskList[i].Id}");
+            }
         }
     }
+
+    task.Wait();
+}
+catch (OperationCanceledException)
+{    
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine("\n Operation cancelled");
+    Console.WriteLine("\n ------ !Exit! ------");
+    Console.ResetColor();   
+}
+finally
+{
+    cts.Dispose();
 }
 
-Console.ReadLine();
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void DisplayStartedMessage(string message)
 {
@@ -91,31 +103,3 @@ void DisplayFileNotAvailable(string message)
     Console.WriteLine("-------------------------------------------");
 }
 
-/*
-List<string> GetUrlListFromTxtFile(string puth)
-{
-    var urlList = new List<string>();
-    Console.WriteLine("--------------------------------------------");
-    Console.WriteLine($"File: {puth}");
-
-    if (File.Exists(puth))
-    {
-        Console.WriteLine("File available");
-        using (StreamReader reader = new StreamReader(puth))
-        {
-            string? line;
-            while ((line = reader.ReadLine()) != null)
-            {
-                urlList.Add(line);
-            }
-        }
-    }
-    else
-    {
-        Console.WriteLine("File not available!");
-    }
-    Console.WriteLine("--------------------------------------------");
-
-    return urlList; 
-}
-*/
