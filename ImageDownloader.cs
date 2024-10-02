@@ -35,8 +35,6 @@ internal class ImageDownloader
 
     public List<string> GetUrlListFromTxtFile(string puth)
     {
-        //UrlList = new List<string>();
-
         if (File.Exists(puth))
         {
             UrlListIsOpen = true;
