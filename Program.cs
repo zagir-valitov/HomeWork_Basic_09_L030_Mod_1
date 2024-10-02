@@ -14,7 +14,7 @@ CancellationTokenSource cts = new CancellationTokenSource();
 CancellationToken token = cts.Token;
 
 var fileName = "picture";
-var urlList = imageDownloader.GetUrlListFromTxtFile(@"C:\Users\Загир\source\repos\OTUS\HomeWorksBasic\HomeWork_Basic_09_L030_Mod_1\UrlList.txt");
+var urlList = imageDownloader.GetUrlListFromTxtFile("UrlList.txt");
 var taskList = new List<Task>();
 
 foreach(var url in urlList)
